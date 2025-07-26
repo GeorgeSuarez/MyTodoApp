@@ -11,9 +11,10 @@ struct TodoView: View {
     let todos: [Todo]
     
     var body: some View {
-        VStack {
-            Text("Todo App")
-                .font(.title)
+        VStack(alignment: .center) {
+            Text("Todo")
+                .font(.system(size: 32, weight: .bold, design: .default))
+                .foregroundColor(.blue)
             List(todos) { todo in
                 CardView(todo: todo)
                     .padding()

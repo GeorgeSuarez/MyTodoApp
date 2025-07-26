@@ -49,7 +49,12 @@ struct CardView: View {
                                 .foregroundColor(.blue)
                                 .font(.caption)
                         }
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 8)
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(6)
                     }
+                    .buttonStyle(PlainButtonStyle())
                 }
                 
                 Spacer()
@@ -69,6 +74,14 @@ struct CardView: View {
         .background(backgroundColor)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                todo.isCompleted.toggle()
+            }
+        }
+        .scaleEffect(todo.isCompleted ? 0.98 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: todo.isCompleted)
     }
 }
 
