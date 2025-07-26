@@ -2,4 +2,4 @@
 
 A simple little project to familiarize myself with SwiftUI.
 
-[Todo Demo](Screenshots/TodoDemo.png)
+![Todo Demo](Screenshots/TodoDemo.png)
