@@ -11,7 +11,7 @@ import SwiftUI
 struct MyTodoAppApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TodoView(todos: Todo.sampleData)
         }
     }
 }
