@@ -8,18 +8,34 @@
 import SwiftUI
 
 struct TodoView: View {
-    let todos: [Todo]
+    @State var todos: [Todo]
     
     var body: some View {
-        VStack(alignment: .center) {
-            Text("Todo")
-                .font(.system(size: 32, weight: .bold, design: .default))
-                .foregroundColor(.blue)
-            List(todos) { todo in
-                CardView(todo: todo)
-                    .padding()
+        ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+            
+            VStack {
+               Text("Todo List")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(.label))
+                    .padding(.top)
+                
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(todos) { todo in
+                            HStack {
+                                CardView(todo: todo)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    Spacer()
+                }
             }
         }
+        
     }
 }
 

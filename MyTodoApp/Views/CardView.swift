@@ -11,21 +11,13 @@ struct CardView: View {
     @ObservedObject var todo: Todo
     @State private var isDescriptionExpanded = false
     
-    var backgroundColor: Color {
-        if todo.isCompleted {
-            return Color.green.opacity(0.15)
-        } else {
-            return Color.orange.opacity(0.1)
-        }
-    }
-    
     var body: some View {
         VStack(alignment: .leading) {
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: todo.isCompleted ? "checkmark.circle" : "circle")
                     .resizable()
                     .frame(width: 20, height: 20)
-                    .foregroundColor(todo.isCompleted ? .green : .orange)
+                    .foregroundColor(Color(.label))
                     .onTapGesture {
                         todo.isCompleted.toggle()
                     }
@@ -34,7 +26,7 @@ struct CardView: View {
                     Text(todo.title)
                         .font(.title3)
                         .strikethrough(todo.isCompleted)
-                        .foregroundColor(todo.isCompleted ? .secondary : .primary)
+                        .foregroundColor(Color(.label))
                     
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -64,14 +56,18 @@ struct CardView: View {
                 HStack {
                     Text("Description: \(todo.description)")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color(.label))
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
                 .padding(.leading, 28)
             }
         }
         .padding()
-        .background(backgroundColor)
+        .background(Color(.secondarySystemBackground))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color(.label), lineWidth: 3)
+        )
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
         .contentShape(Rectangle())
@@ -88,5 +84,4 @@ struct CardView: View {
 #Preview(traits: .fixedLayout(width: 400, height: 60)) {
     let todo = Todo.sampleData[0]
     CardView(todo: todo)
-        .background(Color.clear)
 }
