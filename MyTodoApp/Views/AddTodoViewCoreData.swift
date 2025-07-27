@@ -1,5 +1,5 @@
 //
-//  AddTodoView.swift
+//  AddTodoViewCoreData.swift
 //  MyTodoApp
 //
 //  Created by George Suarez on 7/26/25.
@@ -7,11 +7,12 @@
 
 import SwiftUI
 
-struct AddTodoView: View {
-    @Binding var todos: [Todo]
-    @State private var title = ""
-    @State private var description = ""
+struct AddTodoViewCoreData: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject private var persistenceController: PersistenceController
+    @State private var title: String = ""
+    @State private var description: String = ""
+    @FocusState private var titleFieldFocused: Bool
     
     var body: some View {
         NavigationView {
@@ -23,6 +24,7 @@ struct AddTodoView: View {
                     
                     TextField("Enter todo title", text: $title)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .focused($titleFieldFocused)
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
@@ -55,25 +57,26 @@ struct AddTodoView: View {
                     .fontWeight(.semibold)
                 }
             }
+            .onAppear {
+                titleFieldFocused = true
+            }
         }
     }
-    
+        
     private func addTodo() {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
-       
-        let newTodo = Todo(title: trimmedTitle,
-                          description: trimmedDescription.isEmpty ? "No details" : trimmedDescription,
-                          isCompleted: false
+        
+        persistenceController.addTodo(
+            title: trimmedTitle,
+            description: trimmedDescription.isEmpty ? "" : trimmedDescription
         )
-        
-        todos.insert(newTodo, at: 0) // Adding new todo at the beginning
+            
         dismiss()
-        
     }
 }
 
 #Preview {
-    @Previewable @State var previewTodos: [Todo] = []
-    return AddTodoView(todos: $previewTodos)
+    AddTodoViewCoreData()
+        .environmentObject(PersistenceController.preview)
 }
