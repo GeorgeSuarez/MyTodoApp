@@ -11,6 +11,8 @@ import CoreData
 struct TodoListView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var persistenceController: PersistenceController
+    @State private var editMode: EditMode = .inactive
+    @State private var selectedTodos: Set<TodoEntity> = []
     @State private var showingAddTodo = false
     
     @FetchRequest(
@@ -37,11 +39,53 @@ struct TodoListView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
+                    if editMode == .active {
+                        HStack {
+                            Button("Select All") {
+                                selectedTodos = Set(todos)
+                            }
+                            .disabled(selectedTodos.count == todos.count)
+                            
+                            Spacer()
+                            
+                            Text("\(selectedTodos.count) selected")
+                                .foregroundColor(.secondary)
+                            
+                            Spacer()
+                            
+                            Button("Delete Selected") {
+                                deleteSelectedTodos()
+                            }
+                            .foregroundColor(.red)
+                            .disabled(selectedTodos.isEmpty)
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                    }
+                    
                     ScrollView {
                         LazyVStack(spacing: 12) {
                             ForEach(todos) { todo in
-                                TodoCardView(todo: todo)
-                                    .padding(.horizontal)
+                                HStack {
+                                    if editMode == .active {
+                                        Button(action: {
+                                            toggleSelection(for: todo)
+                                        }) {
+                                            Image(systemName:  selectedTodos.contains(todo) ? "checkmark.circle.fill" : "circle")
+                                                .foregroundColor(selectedTodos.contains(todo) ? .blue : .gray)
+                                        }
+                                        .padding(.leading)
+                                    }
+                                    
+                                    TodoCardView(todo: todo)
+                                        .onTapGesture {
+                                            if editMode == .active {
+                                                toggleSelection(for: todo)
+                                            }
+                                        }
+                                }
+                                .padding(.horizontal, editMode == .active ? 0 : 16)
                             }
                         }
                         .padding(.vertical)
@@ -51,24 +95,61 @@ struct TodoListView: View {
             .navigationTitle("My Todos")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showingAddTodo = true
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.title2)
+                    if editMode == .inactive {
+                        Button(action: {
+                            showingAddTodo = true
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.title2)
+                        }
+                    } else {
+                        Button("Done") {
+                            editMode = .inactive
+                            selectedTodos.removeAll()
+                        }
                     }
                 }
                 
                 if !todos.isEmpty {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        EditButton()
+                        if editMode == .inactive {
+                            Button("Edit") {
+                                editMode = .active
+                            }
+                        } else {
+                            Button("Cancel") {
+                                editMode = .inactive
+                                selectedTodos.removeAll()
+                            }
+                        }
                     }
                 }
             }
             .sheet(isPresented: $showingAddTodo) {
                 AddTodoViewCoreData()
             }
+            .onChange(of: editMode) { _, newValue in
+                if newValue == .inactive {
+                    selectedTodos.removeAll()
+                }
+            }
         }
+    }
+    
+    private func toggleSelection(for todo: TodoEntity) {
+        if selectedTodos.contains(todo) {
+            selectedTodos.remove(todo)
+        } else {
+            selectedTodos.insert(todo)
+        }
+    }
+    
+    private func deleteSelectedTodos() {
+        for todo in selectedTodos {
+            persistenceController.deleteTodo(todo)
+        }
+        selectedTodos.removeAll()
+        editMode = .inactive
     }
 }
 

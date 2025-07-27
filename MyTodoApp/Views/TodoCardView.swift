@@ -11,6 +11,7 @@ struct TodoCardView: View {
     @ObservedObject var todo: TodoEntity
     @EnvironmentObject private var persistenceController: PersistenceController
     @State private var isDescriptionExpanded = false
+    @State private var showingEditView = false
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -54,18 +55,29 @@ struct TodoCardView: View {
                 
                 Spacer()
                 
-                // Delete button
-                Button(action: {
-                    persistenceController.deleteTodo(todo)
-                }) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                        .font(.caption)
+                // Edit and delete button
+                HStack(spacing: 8) {
+                    Button(action: {
+                        showingEditView = true
+                    }) {
+                        Image(systemName: "pencil")
+                            .foregroundColor(.blue)
+                            .font(.caption)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Button(action: {
+                        persistenceController.deleteTodo(todo)
+                    }) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                .buttonStyle(PlainButtonStyle())
             }
             
-            if isDescriptionExpanded && todo.wrappedDescription != "No description" {
+            if isDescriptionExpanded && todo.wrappedDescription != "No description" && !todo.wrappedDescription.isEmpty {
                 HStack {
                     Text(todo.wrappedDescription)
                         .font(.subheadline)
@@ -88,9 +100,15 @@ struct TodoCardView: View {
         .animation(.easeInOut(duration: 0.2), value: todo.isCompleted)
         .contextMenu {
             Button(action: {
+                showingEditView = true
+            }) {
+                Label("Edit", systemImage: "pencil")
+            }
+            
+            Button(action: {
                 persistenceController.toggleCompletion(for: todo)
             }) {
-                Label(todo.isCompleted ? "Mark Incomplete" : "Mark Complete",
+                 Label(todo.isCompleted ? "Mark Incomplete" : "Mark Complete",
                       systemImage: todo.isCompleted ? "circle" : "checkmark.circle")
             }
             
@@ -99,6 +117,9 @@ struct TodoCardView: View {
             }) {
                 Label("Delete", systemImage: "trash")
             }
+        }
+        .sheet(isPresented: $showingEditView) {
+            EditTodoView(todo: todo)
         }
     }
 }
